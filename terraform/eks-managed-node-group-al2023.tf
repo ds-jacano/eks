@@ -7,6 +7,13 @@ resource "aws_launch_template" "cluster_al2023" {
   image_id               = data.aws_ssm_parameter.eks_al2023.value
   update_default_version = true
 
+  # Enable public IP for instances in public subnets
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.node.id]
+    delete_on_termination       = true
+  }
+
   block_device_mappings {
     device_name = "/dev/xvda"
 
@@ -42,7 +49,7 @@ resource "aws_launch_template" "cluster_al2023" {
 }
 
 #####
-# EKS AL2023 Node Group
+# EKS AL2023 Node Group - Primary AZ
 #####
 module "eks_node_group_al2023" {
   source  = "native-cube/eks-node-group/aws"
@@ -57,15 +64,18 @@ module "eks_node_group_al2023" {
 
   instance_types = var.instance_types
 
-  subnet_ids = module.vpc_eks.private_subnets
+  # Use only the first subnet to place all nodes in the same AZ
+  subnet_ids = [module.vpc_eks.public_subnets[0]]
 
-  desired_size = 2
-  min_size     = 2
-  max_size     = 2
+  # Just one node
+  desired_size = 1
+  min_size     = 1
+  max_size     = 1
 
   labels = {
-    "workload"   = "system-critical"
-    "ami-family" = "AL2023"
+    "workload"              = "system-critical"
+    "ami-family"            = "AL2023"
+    "topology.kubernetes.io/zone" = "eu-west-1a"
   }
 
   update_config = {
@@ -139,13 +149,4 @@ resource "aws_vpc_security_group_egress_rule" "cluster_to_karpenter_nodes" {
 
   ip_protocol                  = "-1"
   referenced_security_group_id = aws_security_group.node.id
-}
-
-# Access to vpc endpoint sg
-resource "aws_vpc_security_group_ingress_rule" "cluster_to_vpc_endpoints" {
-  security_group_id = aws_security_group.eks_vpc_endpoint.id
-  description       = "Allow EKS controlplane and nodes access to VPC endpoints."
-
-  ip_protocol                  = "-1"
-  referenced_security_group_id = aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
 }

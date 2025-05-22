@@ -7,140 +7,24 @@ module "vpc_eks" {
   azs = var.azs
 
   cidr            = var.vpc_cidr
-  private_subnets = var.private_subnets_cidrs
   public_subnets  = var.public_subnets_cidrs
 
-  enable_nat_gateway     = true
-  single_nat_gateway     = false
-  one_nat_gateway_per_az = true
-
+  enable_nat_gateway     = false
   enable_vpn_gateway = true
 
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  propagate_private_route_tables_vgw = true
-  propagate_public_route_tables_vgw  = true
-
-  private_subnet_tags = {
-    "kubernetes.io/role/internal-elb" = "1",
-    "mapPublicIpOnLaunch"             = "FALSE"
-    "karpenter.sh/discovery"          = var.name_prefix
-  }
-
   public_subnet_tags = {
-    "kubernetes.io/role/elb" = "1",
-    "mapPublicIpOnLaunch"    = "TRUE"
+    "kubernetes.io/role/elb"              = "1",
+    "kubernetes.io/role/internal-elb"     = "1",
+    "mapPublicIpOnLaunch"                 = "TRUE",
+    "karpenter.sh/discovery"              = var.name_prefix
   }
 
   tags = {
     "kubernetes.io/cluster/${var.name_prefix}" = "shared"
   }
-}
-
-resource "aws_vpc_endpoint" "eks_vpc_ecr_dkr" {
-  vpc_id            = module.vpc_eks.vpc_id
-  service_name      = data.aws_vpc_endpoint_service.ecr_dkr.service_name
-  vpc_endpoint_type = "Interface"
-
-  security_group_ids  = [aws_security_group.eks_vpc_endpoint.id]
-  subnet_ids          = module.vpc_eks.private_subnets
-  private_dns_enabled = true
-
-  tags = {
-    Name = "${var.name_prefix}-ecr-dkr"
-  }
-}
-
-resource "aws_vpc_endpoint" "eks_vpc_sts" {
-  vpc_id            = module.vpc_eks.vpc_id
-  service_name      = data.aws_vpc_endpoint_service.sts.service_name
-  vpc_endpoint_type = "Interface"
-
-  security_group_ids  = [aws_security_group.eks_vpc_endpoint.id]
-  subnet_ids          = module.vpc_eks.private_subnets
-  private_dns_enabled = true
-
-  tags = {
-    Name = "${var.name_prefix}-sts"
-  }
-}
-
-resource "aws_vpc_endpoint" "eks_vpc_s3" {
-  vpc_id            = module.vpc_eks.vpc_id
-  service_name      = data.aws_vpc_endpoint_service.s3.service_name
-  vpc_endpoint_type = "Interface"
-
-  security_group_ids  = [aws_security_group.eks_vpc_endpoint.id]
-  subnet_ids          = module.vpc_eks.private_subnets
-  private_dns_enabled = true
-
-  tags = {
-    Name = "${var.name_prefix}-s3-int"
-  }
-
-  depends_on = [aws_vpc_endpoint.eks_vpc_s3_gateway]
-}
-
-resource "aws_vpc_endpoint" "eks_vpc_s3_gateway" {
-  vpc_id            = module.vpc_eks.vpc_id
-  service_name      = data.aws_vpc_endpoint_service.s3_gateway.service_name
-  route_table_ids   = module.vpc_eks.private_route_table_ids
-  vpc_endpoint_type = "Gateway"
-
-  tags = {
-    Name = "${var.name_prefix}-gateway"
-  }
-}
-
-resource "aws_vpc_endpoint" "eks_vpc_aps_workspaces" {
-  vpc_id            = module.vpc_eks.vpc_id
-  service_name      = data.aws_vpc_endpoint_service.aps_workspaces.service_name
-  vpc_endpoint_type = "Interface"
-
-  security_group_ids  = [aws_security_group.eks_vpc_endpoint.id]
-  subnet_ids          = module.vpc_eks.private_subnets
-  private_dns_enabled = true
-
-  policy = data.aws_iam_policy_document.eks_vpc_aps_workspaces.json
-
-  tags = {
-    Name = "${var.name_prefix}-aps-workspaces"
-  }
-}
-
-resource "aws_security_group" "eks_vpc_endpoint" {
-  name_prefix = "${var.name_prefix}-vpc-endpoint-sg-"
-  description = "Security Group used by VPC Endpoints."
-  vpc_id      = module.vpc_eks.vpc_id
-
-  tags = {
-    "Name" = "${var.name_prefix}-vpc-endpoint-sg"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_security_group_rule" "eks_vpc_endpoint_egress" {
-  description       = "Allow all egress."
-  security_group_id = aws_security_group.eks_vpc_endpoint.id
-  type              = "egress"
-  protocol          = "-1"
-  from_port         = 0
-  to_port           = 0
-  cidr_blocks       = ["0.0.0.0/0"]
-}
-
-resource "aws_security_group_rule" "eks_vpc_endpoint_self_ingress" {
-  description              = "Self-ingress for all ports."
-  security_group_id        = aws_security_group.eks_vpc_endpoint.id
-  type                     = "ingress"
-  protocol                 = "-1"
-  from_port                = 0
-  to_port                  = 0
-  source_security_group_id = aws_security_group.eks_vpc_endpoint.id
 }
 
 #####
@@ -154,9 +38,4 @@ output "vpc_id" {
 output "public_subnet_ids" {
   value       = module.vpc_eks.public_subnets
   description = "Public subnet IDs."
-}
-
-output "private_subnet_ids" {
-  value       = module.vpc_eks.private_subnets
-  description = "Private subnet IDs."
 }

@@ -90,12 +90,3 @@ resource "aws_vpc_security_group_egress_rule" "node_to_internet" {
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "-1"
 }
-
-# Access to vpc endpoint sg
-resource "aws_vpc_security_group_ingress_rule" "node_to_vpc_endpoints" {
-  security_group_id = aws_security_group.eks_vpc_endpoint.id
-  description       = "Allow EKS Karpenter nodes access to VPC endpoints."
-
-  ip_protocol                  = "-1"
-  referenced_security_group_id = aws_security_group.node.id
-}

@@ -11,11 +11,6 @@ variable "vpc_cidr" {
   description = "Amazon Virtual Private Cloud Classless Inter-Domain Routing range."
 }
 
-variable "private_subnets_cidrs" {
-  type        = list(string)
-  description = "Classless Inter-Domain Routing ranges for private subnets."
-}
-
 variable "public_subnets_cidrs" {
   type        = list(string)
   description = "Classless Inter-Domain Routing ranges for public subnets."

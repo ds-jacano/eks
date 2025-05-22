@@ -1,5 +1,5 @@
 {
-  "replicas": 3,
+  "replicas": 2,
   "resources": {
     "limits": {
       "cpu": "256m",

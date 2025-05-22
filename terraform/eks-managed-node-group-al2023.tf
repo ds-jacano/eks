@@ -59,9 +59,9 @@ module "eks_node_group_al2023" {
 
   subnet_ids = module.vpc_eks.private_subnets
 
-  desired_size = 3
-  min_size     = 3
-  max_size     = 4
+  desired_size = 2
+  min_size     = 2
+  max_size     = 2
 
   labels = {
     "workload"   = "system-critical"

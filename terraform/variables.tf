@@ -44,7 +44,7 @@ variable "eks_enabled_log_types" {
 variable "instance_types" {
   type        = list(string)
   description = "List of instance types associated with the EKS Node Group."
-  default     = ["m6i.large"]
+  default     = ["t3.large"]
 }
 
 variable "eks_service_ipv4_cidr" {
@@ -101,12 +101,6 @@ variable "eks_addon_version_ebs_csi_driver" {
 variable "eks_addon_version_kubecost" {
   type        = string
   description = "KubeCost EKS addon version."
-  default     = null
-}
-
-variable "eks_addon_version_guardduty" {
-  type        = string
-  description = "Guardduty agent EKS addon version."
   default     = null
 }
 

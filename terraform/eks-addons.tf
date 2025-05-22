@@ -93,23 +93,6 @@ resource "aws_eks_addon" "kubecost" {
   }
 }
 
-resource "aws_eks_addon" "guardduty" {
-  count = var.eks_addon_version_guardduty != null ? 1 : 0
-
-  cluster_name  = aws_eks_cluster.cluster.name
-  addon_name    = "aws-guardduty-agent"
-  addon_version = var.eks_addon_version_guardduty
-
-  resolve_conflicts_on_create = "OVERWRITE"
-  resolve_conflicts_on_update = "OVERWRITE"
-
-  preserve = true
-
-  tags = {
-    "eks_addon" = "guardduty"
-  }
-}
-
 resource "aws_eks_addon" "adot" {
   count = var.eks_addon_version_adot != null ? 1 : 0
 

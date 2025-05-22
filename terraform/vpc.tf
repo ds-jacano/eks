@@ -78,6 +78,8 @@ resource "aws_vpc_endpoint" "eks_vpc_s3" {
   tags = {
     Name = "${var.name_prefix}-s3-int"
   }
+
+  depends_on = [aws_vpc_endpoint.eks_vpc_s3_gateway]
 }
 
 resource "aws_vpc_endpoint" "eks_vpc_s3_gateway" {
@@ -139,47 +141,6 @@ resource "aws_security_group_rule" "eks_vpc_endpoint_self_ingress" {
   from_port                = 0
   to_port                  = 0
   source_security_group_id = aws_security_group.eks_vpc_endpoint.id
-}
-
-resource "aws_vpc_endpoint" "eks_vpc_guardduty" {
-  vpc_id            = module.vpc_eks.vpc_id
-  service_name      = data.aws_vpc_endpoint_service.guardduty.service_name
-  vpc_endpoint_type = "Interface"
-
-  policy = data.aws_iam_policy_document.eks_vpc_guardduty.json
-
-  security_group_ids  = [aws_security_group.eks_vpc_endpoint_guardduty.id]
-  subnet_ids          = module.vpc_eks.private_subnets
-  private_dns_enabled = true
-
-  tags = {
-    Name = "${var.name_prefix}-guardduty-data"
-  }
-}
-
-resource "aws_security_group" "eks_vpc_endpoint_guardduty" {
-  name_prefix = "${var.name_prefix}-vpc-endpoint-guardduty-sg-"
-  description = "Security Group used by VPC Endpoints."
-  vpc_id      = module.vpc_eks.vpc_id
-
-  tags = {
-    "Name"             = "${var.name_prefix}-vpc-endpoint-guardduty-sg"
-    "GuardDutyManaged" = "false"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "eks_vpc_guardduty" {
-  security_group_id = aws_security_group.eks_vpc_endpoint_guardduty.id
-  description       = "Ingress for port 443."
-
-  cidr_ipv4   = "0.0.0.0/0"
-  from_port   = 443
-  ip_protocol = "tcp"
-  to_port     = 443
 }
 
 #####

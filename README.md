@@ -7,10 +7,10 @@ Implementation of EKS setup using Terraform. Terraform module located in [terraf
 Module creates:
 
 * VPC
-* VPC Endpoints- S3, ECR, STS, APS, GuardDuty
+* VPC Endpoints- S3, ECR, STS, APS
 * EKS Cluster
 * EKS Node Group to run cluster critical services
-* EKS Addons- coredns, kube-proxy, guardduty, aws-ebs-csi-driver, adot (requires cert-manger to be installed), kubecost, cloudwatch observability, snapshot-controller, identity agent, metrics server and kube-state-metrics
+* EKS Addons- coredns, kube-proxy, aws-ebs-csi-driver, adot (requires cert-manger to be installed), kubecost, cloudwatch observability, snapshot-controller, identity agent, metrics server and kube-state-metrics
 * IAM Roles for worker nodes and Karpenter nodes
 * Additional IAM Roles for operators- load-balancer-controller, external-dns, cert-manager, adot-collector
 * SQS queue configuration to be used with Karpeneter while utlising Spot Instances.

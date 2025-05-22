@@ -30,14 +30,6 @@ data "aws_vpc_endpoint_service" "s3_gateway" {
   }
 }
 
-data "aws_vpc_endpoint_service" "guardduty" {
-  service_type = "Interface"
-  filter {
-    name   = "service-name"
-    values = ["${data.aws_partition.current.reverse_dns_prefix}.${data.aws_region.current.name}.guardduty-data"]
-  }
-}
-
 data "aws_iam_policy_document" "eks_vpc_aps_workspaces" {
   statement {
     actions = [
@@ -61,37 +53,3 @@ data "aws_vpc_endpoint_service" "aps_workspaces" {
   }
 }
 
-data "aws_iam_policy_document" "eks_vpc_guardduty" {
-  statement {
-    actions = ["*"]
-
-    effect = "Allow"
-
-    resources = ["*"]
-
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-  }
-
-  statement {
-    actions = ["*"]
-
-    effect = "Deny"
-
-    resources = ["*"]
-
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-
-    condition {
-      test     = "StringNotEquals"
-      variable = "aws:PrincipalAccount"
-
-      values = [data.aws_caller_identity.current.account_id]
-    }
-  }
-}

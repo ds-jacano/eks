@@ -144,24 +144,6 @@ resource "aws_security_group_rule" "eks_vpc_endpoint_self_ingress" {
 }
 
 #####
-# VPC Flow logs
-#####
-module "eks_vpc_flow_logs" {
-  source  = "native-cube/vpc-flow-logs/aws"
-  version = "~> 2.1.0"
-
-  name_prefix = "${var.name_prefix}-vpc-"
-
-  cloudwatch_log_group_name = "/vpc-flow-logs/${var.name_prefix}"
-
-  vpc_id = module.vpc_eks.vpc_id
-
-  retention_in_days = 30
-
-  traffic_type = "ALL"
-}
-
-#####
 # Outputs
 #####
 output "vpc_id" {
